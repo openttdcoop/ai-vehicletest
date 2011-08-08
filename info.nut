@@ -20,6 +20,7 @@ class AIVehicleTest extends AIInfo
    function GetVersion()     { return 1; }
    function GetDate()        { return "2011-08-07"; }
    function CreateInstance() { return "AIVehicleTest"; }
+   function UseAsRandomAI()  { return false; }
    function GetShortName()   { return "AIVT"; }
    
    function GetSettings() 
