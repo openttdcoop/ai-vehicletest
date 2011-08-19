@@ -274,7 +274,7 @@ function AIVehicleTest::RefitCheck(engineID)
 				if (atest > 0)	{ allfail=false; allcrg+=AICargo.GetCargoLabel(crg)+" ("+atest+") "; }
 				}
 			if (allfail)	allcrg="nothing";
-			AILog.Info(res+" "+allcrg);
+			AILog.Info(res+" "+allcrg+" Length="+AIVehicle.GetLength(wagonID));
 			if (!AIVehicle.SellWagon(wagonID,0))	this.SendError();
 			}
 		}
