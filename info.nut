@@ -17,7 +17,7 @@ class AIVehicleTest extends AIInfo
    function GetAuthor()      { return "Krinn"; }
    function GetName()        { return "AIVehicleTest"; }
    function GetDescription() { return "An ai to see how your AI will see vehicles in game"; }
-   function GetVersion()     { return 1; }
+   function GetVersion()     { return 2; }
    function GetDate()        { return "2011-08-07"; }
    function CreateInstance() { return "AIVehicleTest"; }
    function UseAsRandomAI()  { return false; }

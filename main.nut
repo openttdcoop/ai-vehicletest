@@ -12,6 +12,7 @@
  *    Authors: Krinn
 **/
 
+import("Library.cEngineLib", "cEngineLib", 1);
 class AIVehicleTest extends AIController
  {
    worktile = null;
@@ -28,10 +29,11 @@ class AIVehicleTest extends AIController
  
  function AIVehicleTest::Start()
 	{
+	cEngineLib.EngineCacheInit();
 	AILog.Info("AIVehicleTest Started.");
 	AILog.Info("Switch to cheat mode, and use the AI player so when you alter a sign, the ai will stay proprietary of the sign.");
 	AILog.Info("So you better also cheat to gave money to the AI, else the AI might fail if running short (no account support).");
-	AILog.Info("Then change the sign to match the vehicle name (or partial name) the AI need to test, only road/trains/wagons are support for now");
+	AILog.Info("Then change the sign to match the vehicle name (or partial name) the AI need to test, only road/trains/wagons are supported for now");
 	AILog.Info("If you test a train, AI will also check all wagons that appears compatible against that train to really check they are compatible.");
 	AILog.Info("If you test a wagon, AI will also check all wagons that run on the same railtype to show their refit capacity");
   	//set a legal railtype. 
@@ -100,16 +102,23 @@ function AIVehicleTest::RefitAndPull(engineID)
 	local cargolist=AICargoList();
 	local canpull=AIList();
 	local canrefit=AIList();
+	local canpullover = AIList();
+
+	
 	foreach (crg, dum in cargolist)
 		{
 		if (AIEngine.CanRefitCargo(engineID, crg))	canrefit.AddItem(crg, 1);
-							else	canrefit.AddItem(crg, 0);
-		if (AIEngine.CanPullCargo(engineID, crg))	canpull.AddItem(crg, 1);
-							else	canpull.AddItem(crg, 0);
+									else	canrefit.AddItem(crg, 0);
+		if (cEngineLib.CanPullCargo(engineID, crg, false))	canpull.AddItem(crg, 1);
+										else	canpull.AddItem(crg, 0);
+		if (cEngineLib.CanPullCargo(engineID, crg, true))	canpullover.AddItem(crg, 1);
+										else	canpullover.AddItem(crg, 0);
 		}
 	local canpull_str=this.CargoSupportString(canpull);
+	local canpullover_str=this.CargoSupportString(canpullover);
 	local canrefit_str=this.CargoSupportString(canrefit);
-	AILog.Info("AIEngine.CanPullCargo  : "+canpull_str);
+	AILog.Info("cEngineLib.CanPullCargo (false) : "+canpull_str);
+	AILog.Info("cEngineLib.CanPullCargo (true)  : "+canpullover_str);
 	AILog.Info("AIEngine.CanRefitCargo : "+canrefit_str);
 	}
 
@@ -147,6 +156,7 @@ function AIVehicleTest::BrowseVehicle()
 	AILog.Info("AIEngine.GetMaxAge     : "+AIEngine.GetMaxAge(engineID));
 	AILog.Info("AIEngine.GetRunningCost: "+AIEngine.GetRunningCost(engineID));
 	AILog.Info("AIEngine.IsWagon       : "+AIEngine.IsWagon(engineID));
+	AILog.Info("cEngineLib.IsLocomotive:"+cEngineLib.IsLocomotive(engineID));
 	AILog.Info("AIEngine.IsArticulated : "+AIEngine.IsArticulated(engineID));
 	AILog.Info("AIEngine.GetPower      : "+AIEngine.GetPower(engineID));
 	AILog.Info("AIEngine.GetWeight     : "+AIEngine.GetWeight(engineID));
@@ -195,7 +205,7 @@ function AIVehicleTest::RefitCheck(engineID)
 	if (!this.BuildDepot(isRoad,engineID))	{ this.SendError(); return; }
 	if (isRoad || isTrain)
 		{
-		vehID=AIVehicle.BuildVehicle(this.worktile, engineID);
+		vehID=cEngineLib.CreateVehicle(this.worktile, engineID);
 		if (!AIVehicle.IsValidVehicle(vehID))	{ this.SendError(); return; }
 		local allfail=true;
 		foreach (crg, dum in cargolist)
@@ -215,7 +225,7 @@ function AIVehicleTest::RefitCheck(engineID)
 		foreach (wagon, dum in wagonlist)
 			{
 			local st="";
-			wagonID=AIVehicle.BuildVehicle(this.worktile, wagon);
+			wagonID=cEngineLib.CreateVehicle(this.worktile, wagon);
 			st="Wagon "+AIEngine.GetName(wagon)+"("+wagon+") ";
 			if (!AIVehicle.IsValidVehicle(wagonID))
 				{
@@ -259,7 +269,7 @@ function AIVehicleTest::RefitCheck(engineID)
 		local wagonID=null;
 		foreach (wagon, dummy in wagonlist)
 			{
-			res="openttd id="+wagon+" - "+AIEngine.GetName(wagon)+" :";
+			res="id="+wagon+" - "+AIEngine.GetName(wagon)+" :";
 			local allcrg="";
 			local allfail=true;
 			wagonID=AIVehicle.BuildVehicle(this.worktile, wagon);
@@ -270,7 +280,7 @@ function AIVehicleTest::RefitCheck(engineID)
 				}
 			foreach (crg, dum in cargolist)
 				{
-				atest=AIVehicle.GetRefitCapacity(wagon, crg);
+				atest=AIVehicle.GetRefitCapacity(wagonID, crg);
 				if (atest > 0)	{ allfail=false; allcrg+=AICargo.GetCargoLabel(crg)+" ("+atest+") "; }
 				}
 			if (allfail)	allcrg="nothing";
